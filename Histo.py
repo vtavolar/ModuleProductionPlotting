@@ -8,13 +8,15 @@ lines = [line.strip() for line in open('modules.list')]
 modules=[]
 
 parameters = {}
-parameters['Noise'] = dict(json=False, chip = True, path = '*_1/Chips/Chip*/SCurveWidths/SCurveWidths.root', namedistr = 'Noise distribution', namefile = 'NoiseDistr.root', bin=100, xmin=0., xmax=600, xaxistitle = 'Noise [e^{-}]', gradB = 500, gradC = 1000)
-parameters['PHCalibrationParameter1'] = dict(json=False, chip = True, path = '*_1/Chips/Chip*/PHCalibrationParameter1/PHCalibrationParameter1.root', namedistr = 'PH Calibration Parameter1', namefile = 'PHCalibrationParameter1.root', bin=350, xmin=-1., xmax=6, xaxistitle = 'Parameter 1', gradB = 4, gradC = 5) # We have to check gradB/C!! 
-parameters['VcalThresholdWidth'] = dict(json=False, chip = False, path = '*_1/VcalThresholdWidth/VcalThresholdWidth.root', namedistr = 'Vcal Threshold Width', namefile = 'VcalThresholdWidth.root', bin=600, xmin=0., xmax=600, xaxistitle = 'Width of Vcal Threshold [e^{-}]', gradB = 200, gradC = 400)
-parameters['RelativeGainWidth'] = dict(json = False, chip = False, path = '*_1/RelativeGainWidth/RelativeGainWidth.root', namedistr = 'Relative Gain Width', namefile = 'RelativeGainWidth.root', bin=150, xmin=0., xmax=0.25, xaxistitle = 'Relative Gain Width', gradB=0.1, gradC =0.2)
-parameters['PedestalSpread'] = dict(json=False, chip = False, path = '*_1/PedestalSpread/PedestalSpread.root', namedistr = 'Pedestal Spread', namefile = 'PedestalSpread.root', bin=240, xmin=0., xmax=5500, xaxistitle = 'Average Pedestal [e^{-}]', gradB = 2500, gradC = 5000)
-parameters['Current150V'] = dict(json = True, key = 'CurrentAtVoltage150V', chip = False, path = '*/IVCurve/KeyValueDictPairs.json', namedistr = 'Current at Voltage 150V', namefile = 'Current150V.root', bin=24, xmin=0, xmax=18, xaxistitle = 'Recalculated current at 150V [microA]', gradB = 3, gradC = 15)
-parameters['SlopeIV'] = dict(json = True, key = 'Variation', chip = False, path = '*/IVCurve/KeyValueDictPairs.json', namedistr = 'Slope IV', namefile = 'SlopeIV.root', bin=12, xmin=0, xmax=12, xaxistitle = 'Slope IV [microA]', gradB = 400, gradC = 2)
+parameters['Noise'] = dict(json=False, chip = True, path = '*_1/Chips/Chip*/SCurveWidths/SCurveWidths.root', namedistr = 'Noise distribution', namefile = 'NoiseDistr', bin=100, xmin=0., xmax=600, xaxistitle = 'Noise [e^{-}]', gradB = 500, gradC = 1000)
+parameters['PHCalibrationParameter1'] = dict(json=False, chip = True, path = '*_1/Chips/Chip*/PHCalibrationParameter1/PHCalibrationParameter1.root', namedistr = 'PH Calibration Parameter1', namefile = 'PHCalibrationParameter1', bin=350, xmin=-1., xmax=6, xaxistitle = 'Parameter 1', gradB = 4, gradC = 5) # We have to check gradB/C!! 
+parameters['VcalThresholdWidth'] = dict(json=False, chip = False, path = '*_1/VcalThresholdWidth/VcalThresholdWidth.root', namedistr = 'Vcal Threshold Width', namefile = 'VcalThresholdWidth', bin=600, xmin=0., xmax=600, xaxistitle = 'Width of Vcal Threshold [e^{-}]', gradB = 200, gradC = 400)
+parameters['RelativeGainWidth'] = dict(json = False, chip = False, path = '*_1/RelativeGainWidth/RelativeGainWidth.root', namedistr = 'Relative Gain Width', namefile = 'RelativeGainWidth', bin=150, xmin=0., xmax=0.25, xaxistitle = 'Relative Gain Width', gradB=0.1, gradC =0.2)
+parameters['PedestalSpread'] = dict(json=False, chip = False, path = '*_1/PedestalSpread/PedestalSpread.root', namedistr = 'Pedestal Spread', namefile = 'PedestalSpread', bin=240, xmin=0., xmax=5500, xaxistitle = 'Average Pedestal [e^{-}]', gradB = 2500, gradC = 5000)
+parameters['Current150V'] = dict(json = True, key = 'CurrentAtVoltage150V', chip = False, path = '*/IVCurve/KeyValueDictPairs.json', namedistr = 'Current at Voltage 150V', namefile = 'Current150V', bin=24, xmin=0, xmax=18, xaxistitle = 'Measured current at 150V [microA]', gradB = 3, gradC = 15)
+parameters['SlopeIV'] = dict(json = True, key = 'Variation', chip = False, path = '*/IVCurve/KeyValueDictPairs.json', namedistr = 'Slope IV', namefile = 'SlopeIV', bin=12, xmin=0, xmax=12, xaxistitle = 'Slope IV [microA]', gradB = 400, gradC = 2)
+parameters['RecalculatedCurrent150V'] = dict(json= False, key = 'CurrentAtVoltage150V', chip = False, path = '*/IVCurve/KeyValueDictPairs.json', namedistr = 'Recalculated Current at Voltage 150V', namefile = 'RecalculatedCurrent150V', bin=24, xmin=0, xmax=18, xaxistitle = 'Recalculated current at 150V [microA]', gradB = 3, gradC = 15)
+
 
 def ModuleList():
    for line in lines:
@@ -68,6 +70,22 @@ def CreateHistoFromJson(FilePath, par):
          histo.Fill(data)
    return histo
 
+
+def CreateHistoFromJsonForRecalculatedCurrent(FilePath, par):
+   histo = r.TH1D(parameters[par]['namedistr'], parameters[par]['namedistr'], parameters[par]['bin'], parameters[par]['xmin'], parameters[par]['xmax'])
+   for i in range(len(FilePath)):
+      with open(FilePath[i]) as json_data:
+         d = json.load(json_data)
+         data = float(d[parameters[par]['key']]['Value'])
+         print data
+         dataRecalculated = data*(290.15/253.15)**2*np.exp((1.12/(2*8.62e-5))*(253.15**-1-290.15**-1))
+         histo.Fill(dataRecalculated)
+         print dataRecalculated
+   return histo
+
+
+
+
 def main():
    ModuleList()
    for temperature in temperatures:
@@ -75,6 +93,11 @@ def main():
          FilePath = GetFilePath(par, temperature)
          if parameters[par]['json']:
             histo = CreateHistoFromJson(FilePath, par)
+         elif par == 'RecalculatedCurrent150V':
+            if temperature == 'p17':
+               continue
+            else:
+               histo = CreateHistoFromJsonForRecalculatedCurrent(FilePath, par)
          elif parameters[par]['chip']:
             histo = CreateHisto(FilePath, par)
          else:
@@ -98,7 +121,8 @@ def main():
          gradB.SetLineStyle(2)
          gradB.Draw()
          gradC.Draw()
-         canvas.SaveAs(str(temperature+parameters[par]['namefile']))
+         for fmt in ['.png', '.pdf', '.root']:
+            canvas.SaveAs(str(temperature+parameters[par]['namefile'])+str(fmt))
          
 
 

@@ -8,7 +8,7 @@ parameters['VcalThresholdWidth'] = dict(file='VcalThresholdWidth.root', canvas =
 parameters['PHCalibrationParameter1'] = dict(file='PHCalibrationParameter1.root', canvas = 'PH Calibration Parameter1', xaxistitle = 'Parameter 1', gradB = 4, gradC = 5)
 parameters['PedestalSpread'] = dict(file='PedestalSpread.root', canvas = 'Pedestal Spread', xaxistitle = 'Average Pedestal [e^{-}]', gradB = 2500, gradC = 5000)
 #Only in case the current is measured at -20C:
-parameters['Current150V'] = dict(file='Current150V.root', canvas = 'Current at Voltage 150V', xaxistitle = 'Recalculated current at 150V [microA]', gradB = 3, gradC = 15)
+parameters['Current150V'] = dict(file='Current150V.root', canvas = 'Current at Voltage 150V', xaxistitle = 'Measured current at 150V [microA]', gradB = 3, gradC = 15)
 parameters['SlopeIV'] = dict(file='SlopeIV.root', canvas = 'Slope IV', xaxistitle = 'Slope IV [microA]', gradB = 400, gradC = 2)
 
 def main():

@@ -2,22 +2,26 @@ import ROOT as r
 import glob
 
 parameters = {}
-parameters['Noise'] = dict(file='NoiseDistr.root', canvas = 'Noise distribution', xaxistitle = 'Noise [e^{-}]', gradB = 500, gradC = 1000)
-parameters['RelativeGainWidth'] = dict(file='RelativeGainWidth.root', canvas = 'Relative Gain Width', xaxistitle = 'Relative Gain Width', gradB = 0.1, gradC = 0.2)
-parameters['VcalThresholdWidth'] = dict(file='VcalThresholdWidth.root', canvas = 'Vcal Threshold Width', xaxistitle = 'Width of Vcal Threshold [e^{-}]', gradB = 200, gradC = 400)
-parameters['PHCalibrationParameter1'] = dict(file='PHCalibrationParameter1.root', canvas = 'PH Calibration Parameter1', xaxistitle = 'Parameter 1', gradB = 4, gradC = 5)
-parameters['PedestalSpread'] = dict(file='PedestalSpread.root', canvas = 'Pedestal Spread', xaxistitle = 'Average Pedestal [e^{-}]', gradB = 2500, gradC = 5000)
+parameters['Noise'] = dict(file='NoiseDistr', canvas = 'Noise distribution', xaxistitle = 'Noise [e^{-}]', gradB = 500, gradC = 1000)
+parameters['RelativeGainWidth'] = dict(file='RelativeGainWidth', canvas = 'Relative Gain Width', xaxistitle = 'Relative Gain Width', gradB = 0.1, gradC = 0.2)
+parameters['VcalThresholdWidth'] = dict(file='VcalThresholdWidth', canvas = 'Vcal Threshold Width', xaxistitle = 'Width of Vcal Threshold [e^{-}]', gradB = 200, gradC = 400)
+parameters['PHCalibrationParameter1'] = dict(file='PHCalibrationParameter1', canvas = 'PH Calibration Parameter1', xaxistitle = 'Parameter 1', gradB = 4, gradC = 5)
+parameters['PedestalSpread'] = dict(file='PedestalSpread', canvas = 'Pedestal Spread', xaxistitle = 'Average Pedestal [e^{-}]', gradB = 2500, gradC = 5000)
 #Only in case the current is measured at -20C:
-parameters['Current150V'] = dict(file='Current150V.root', canvas = 'Current at Voltage 150V', xaxistitle = 'Recalculated current at 150V [microA]', gradB = 3, gradC = 15)
-parameters['SlopeIV'] = dict(file='SlopeIV.root', canvas = 'Slope IV', xaxistitle = 'Slope IV [microA]', gradB = 400, gradC = 2)
+parameters['Current150V'] = dict(file='Current150V', canvas = 'Current at Voltage 150V', xaxistitle = 'Measured current at 150V [microA]', gradB = 3, gradC = 15)
+parameters['SlopeIV'] = dict(file='SlopeIV', canvas = 'Slope IV', xaxistitle = 'Slope IV [microA]', gradB = 400, gradC = 2)
 
-ProdCenters = ['CERN', 'PERUGIA', 'AACHEN', 'ETH']
+
+# This is for all modules:
+#ProdCenters = ['CERN_all', 'PERUGIA', 'AACHEN', 'ETH']
+# This is for all modules with ROC digv21resppin
+ProdCenters = ['CERN_respin', 'ETH']
 temperatures = ['m20', 'p17']
 
 def GetFilePath(par, temperature):
    FilePath = []
    for ProdCenter in ProdCenters:
-      FilePath += glob.glob('Results/'+ProdCenter+'*/'+temperature+parameters[par]['file'])
+      FilePath += glob.glob('Results/'+ProdCenter+'*/'+temperature+parameters[par]['file']+'.root')
    return FilePath
 
 
@@ -65,14 +69,15 @@ def main():
          #latex.DrawLatex(0.2, 0.82, '#color[3]{N: '+'{:.0f}'.format(histop17.GetEntries())+'  Mean: '+'{:.3f}'.format(histop17.GetMean())+'  RMS: '+'{:.3f}'.format(histop17.GetRMS())+'}')
          Legend = r.TLegend(0.5,0.55,0.75,0.75)
          Legend.AddEntry('CER', 'CERN', 'f')
-         Legend.AddEntry('PER', 'PERUGIA', 'f')
-         Legend.AddEntry('AAC', 'AACHEN', 'f')
+         #Legend.AddEntry('PER', 'PERUGIA', 'f')
+         #Legend.AddEntry('AAC', 'AACHEN', 'f')
          Legend.AddEntry('ETH', 'ETHZ', 'f')
          Legend.SetBorderSize(0)
          #Legend.AddEntry('gradB', 'Grade B threshold', 'l')
          #Legend.AddEntry('gradC', 'Grade C threshold', 'l')
          Legend.Draw()
-         canvas.SaveAs(temperature+'ProdCentersStack'+parameters[par]['file'])
+         for fmt in ['.png', '.pdf', '.root']:
+            canvas.SaveAs(temperature+'ProdCentersStack'+parameters[par]['file']+str(fmt))
 
 
 
