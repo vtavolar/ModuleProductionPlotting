@@ -2,13 +2,14 @@ import ROOT as r
 import glob
 
 parameters = {}
-parameters['Noise'] = dict(file='NoiseDistr', canvas = 'Noise distribution', xaxistitle = 'Noise [e^{-}]', gradB = 500, gradC = 1000)
+parameters['NoiseROC'] = dict(file='NoiseROC', canvas = 'Mean Noise per ROC', xaxistitle = 'Mean Noise [e^{-}]', gradB = 500, gradC = 1000)
+parameters['Noise'] = dict(file='NoiseDistr', canvas = 'Noise distribution', xaxistitle = 'Noise [e^{-}]', gradB = 50, gradC = 400)
 parameters['RelativeGainWidth'] = dict(file='RelativeGainWidth', canvas = 'Relative Gain Width', xaxistitle = 'Relative Gain Width', gradB = 0.1, gradC = 0.2)
 parameters['VcalThresholdWidth'] = dict(file='VcalThresholdWidth', canvas = 'Vcal Threshold Width', xaxistitle = 'Width of Vcal Threshold [e^{-}]', gradB = 200, gradC = 400)
-parameters['PHCalibrationParameter1'] = dict(file='PHCalibrationParameter1', canvas = 'PH Calibration Parameter1', xaxistitle = 'Parameter 1', gradB = 4, gradC = 5)
+parameters['PHCalibrationParameter1'] = dict(file='PHCalibrationParameter1', canvas = 'PH Calibration Parameter1', xaxistitle = 'Parameter 1', gradB = 0, gradC = 2)
 parameters['PedestalSpread'] = dict(file='PedestalSpread', canvas = 'Pedestal Spread', xaxistitle = 'Average Pedestal [e^{-}]', gradB = 2500, gradC = 5000)
 #Only in case the current is measured at -20C:
-parameters['Current150V'] = dict(file='Current150V', canvas = 'Current at Voltage 150V', xaxistitle = 'Recalculated current at 150V [microA]', gradB = 3, gradC = 15)
+parameters['Current150V'] = dict(file='Current150V', canvas = 'Current at Voltage 150V', xaxistitle = 'Leakage current at 150V [microA]', gradB = 3, gradC = 15)
 parameters['SlopeIV'] = dict(file='SlopeIV', canvas = 'Slope IV', xaxistitle = 'Slope IV [microA]', gradB = 400, gradC = 2)
 
 
@@ -31,24 +32,35 @@ def main():
       canvas.cd()
       canvas.SetLogy()
       stack = r.THStack('stack', parameters[par]['canvas'])
-      histom20.SetLineColor(2)
-      histop17.SetLineColor(3)
-      histom20.SetFillColor(2)
-      histop17.SetFillColor(3)
+      histom20.SetLineColor(38)
+      histop17.SetLineColor(46)
+      histom20.SetFillColor(38)
+      histop17.SetFillColor(46)
       stack.Add(histom20)
       stack.Add(histop17)
       histom20.SetStats(0)
       histop17.SetStats(0)
-      histom20.SetXTitle(parameters[par]['xaxistitle'])
       max = stack.GetMaximum()
       stack.SetMaximum(max*10)
       stack.SetMinimum(0.5)
       stack.Draw()
-      gradB = r.TLine(parameters[par]['gradB'], 0, parameters[par]['gradB'], max)
-      gradC = r.TLine(parameters[par]['gradC'], 0, parameters[par]['gradC'], max)
+      if par == 'Noise' or par == 'PHCalibrationParameter1':
+         stack.GetYaxis().SetTitle('# Pixels')
+      elif par == 'Current150V' or par == 'SlopeIV':
+         stack.GetYaxis().SetTitle('# Modules')
+      else:
+         stack.GetYaxis().SetTitle('# ROCs')
+      stack.GetXaxis().SetTitle(parameters[par]['xaxistitle'])
+      r.gPad.Update()
+      gradB = r.TLine(parameters[par]['gradB'], 0, parameters[par]['gradB'], max*5)
+      gradC = r.TLine(parameters[par]['gradC'], 0, parameters[par]['gradC'], max*5)
       gradB.SetLineColor(r.kOrange)
-      gradC.SetLineColor(r.kBlue)
+      if par == 'Noise' or par == 'PHCalibrationParameter1':
+         gradC.SetLineColor(r.kOrange)
+      else:
+         gradC.SetLineColor(r.kRed)
       gradB.SetLineStyle(2)
+      gradC.SetLineStyle(2)
       gradB.SetLineWidth(3)
       gradC.SetLineWidth(3)
       gradB.Draw()
@@ -56,16 +68,17 @@ def main():
       latex = r.TLatex()
       latex.SetNDC()
       latex.SetTextAlign(13)
-      latex.DrawLatex(0.2, 0.87, '#color[2]{N: '+'{:.0f}'.format(histom20.GetEntries())+'  Mean: '+'{:.3f}'.format(histom20.GetMean())+'  RMS: '+'{:.3f}'.format(histom20.GetRMS())+'}')
-      latex.DrawLatex(0.2, 0.82, '#color[3]{N: '+'{:.0f}'.format(histop17.GetEntries())+'  Mean: '+'{:.3f}'.format(histop17.GetMean())+'  RMS: '+'{:.3f}'.format(histop17.GetRMS())+'}')
-      Legend = r.TLegend(0.5,0.55,0.75,0.75)
+      latex.DrawLatex(0.2, 0.87, '#color[38]{N: '+'{:.0f}'.format(histom20.GetEntries())+'  Mean: '+'{:.3f}'.format(histom20.GetMean())+'  RMS: '+'{:.3f}'.format(histom20.GetRMS())+'}')
+      latex.DrawLatex(0.2, 0.82, '#color[46]{N: '+'{:.0f}'.format(histop17.GetEntries())+'  Mean: '+'{:.3f}'.format(histop17.GetMean())+'  RMS: '+'{:.3f}'.format(histop17.GetRMS())+'}')
+      Legend = r.TLegend(0.5,0.55,0.73,0.75)
       Legend.AddEntry('p17', 'Fulltest at 17 C', 'f')
       Legend.AddEntry('m20', 'Fulltest at -20 C', 'f')
       Legend.SetBorderSize(0)
       #Legend.AddEntry('gradB', 'Grade B threshold', 'l')
       #Legend.AddEntry('gradC', 'Grade C threshold', 'l')
       Legend.Draw()
-      canvas.SaveAs(parameters[par]['file']+'.root')
+      for fmt in ['.root', '.png', '.pdf']:
+         canvas.SaveAs(parameters[par]['file']+str(fmt))
 
 
 
